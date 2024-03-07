@@ -34,10 +34,9 @@ class Generator(nn.Module):
             nn.PixelShuffle(2),  # Upsample by 2x
             nn.LeakyReLU(0.2),
             nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),
             nn.LeakyReLU(0.2)
         )
-        self.conv = nn.Conv2d(64, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv = nn.Conv2d(256, in_channels, kernel_size=3, stride=1, padding=1)
 
         
     def _make_layers(self, num_rrdb_blocks):
@@ -62,22 +61,23 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
+            # Add more layers as needed
         )
-        self.last_conv_output_size = None 
-        self.fc = None  
+        # Placeholder for the fully connected layers; to be initialized later
+        self.fc = None
 
     def forward(self, x):
         x = self.convs(x)
+        x = F.adaptive_avg_pool2d(x, (1, 1)) # Add this line for global average pooling
+        x = torch.flatten(x, 1) # Adjust this line accordingly
         if self.fc is None:
-            self.last_conv_output_size = x.shape[1] * x.shape[2] * x.shape[3]
+            n_size = x.size(1)
             self.fc = nn.Sequential(
-                nn.Flatten(),
-                nn.Linear(self.last_conv_output_size, 1024),
+                nn.Linear(n_size, 1024),
                 nn.LeakyReLU(0.2),
                 nn.Linear(1024, 1)
-            ).to(x.device)  
+            ).to(x.device)
         return self.fc(x)
-
     
 class VGGFeatures(torch.nn.Module):
     def __init__(self):
@@ -121,26 +121,25 @@ class PerceptualLoss(torch.nn.Module):
         self.criterion = torch.nn.MSELoss()
 
     def forward(self, x, y):
-        height, width = min(x.size(2), y.size(2)), min(x.size(3), y.size(3))
-        x_cropped = x[:, :, :height, :width]
-        y_cropped = y[:, :, :height, :width]
         
-        x_vgg, y_vgg = self.vgg(x_cropped), self.vgg(y_cropped)
+        x_vgg, y_vgg = self.vgg(x), self.vgg(y)
         loss = sum(self.criterion(x_feat, y_feat) for x_feat, y_feat in zip(x_vgg, y_vgg))
         return loss
 
 
 class ImageDataset(Dataset):
-    def __init__(self, hr_dir, lr_dir, transform=None):
+    def __init__(self, hr_dir, lr_dir, hr_transform=None, lr_transform=None):
         """
         Args:
             hr_dir (string): Directory with high-resolution images.
             lr_dir (string): Directory with low-resolution images.
-            transform (callable, optional): Optional transform to be applied on a sample.
+            hr_transform (callable, optional): Transform to be applied on HR images.
+            lr_transform (callable, optional): Transform to be applied on LR images.
         """
         self.hr_dir = hr_dir
         self.lr_dir = lr_dir
-        self.transform = transform
+        self.hr_transform = hr_transform
+        self.lr_transform = lr_transform
         self.image_files = [f for f in os.listdir(hr_dir) if os.path.isfile(os.path.join(hr_dir, f))]
 
     def __len__(self):
@@ -152,15 +151,13 @@ class ImageDataset(Dataset):
 
         hr_image = Image.open(hr_img_name).convert('RGB')
         lr_image = Image.open(lr_img_name).convert('RGB')
-        
 
-        if self.transform:
-            hr_image = self.transform(hr_image)
-            lr_image = self.transform(lr_image)
+        if self.hr_transform:
+            hr_image = self.hr_transform(hr_image)
+        if self.lr_transform:
+            lr_image = self.lr_transform(lr_image)
 
-           
         return lr_image, hr_image
-
 
         
         

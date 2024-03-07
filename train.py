@@ -7,6 +7,7 @@ from models import Generator
 
 from models import ImageDataset
 from models import PerceptualLoss
+from models import Discriminator
 
 device = torch.device("cuda")
 
@@ -18,53 +19,89 @@ train_lr_dir = os.path.join(train_dir, 'lr')
 val_hr_dir = os.path.join(val_dir, 'hr')
 val_lr_dir = os.path.join(val_dir, 'lr')
 
-def collate_fn(batch):
-    images, targets = zip(*batch)
 
-    return list(images), list(targets)
+downscaling_factor = 2  # Adjust as per your downscaling factor
+hr_crop_size = 100  # Example crop size for HR images
 
+# Transforms for HR images
+hr_transform = transforms.Compose([
+    transforms.CenterCrop(hr_crop_size),
+    transforms.ToTensor(),
+])
 
-transform = transforms.Compose([
+# Adjust the LR crop size according to the downscaling factor
+lr_crop_size = hr_crop_size // downscaling_factor
+
+# Transforms for LR images
+lr_transform = transforms.Compose([
+    transforms.CenterCrop(lr_crop_size),
     transforms.ToTensor(),
 ])
 
 
-train_dataset = ImageDataset(hr_dir=train_hr_dir, lr_dir=train_lr_dir, transform=transform)
-val_dataset = ImageDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir, transform=transform)
+train_dataset = ImageDataset(hr_dir=train_hr_dir, lr_dir=train_lr_dir, hr_transform=hr_transform, lr_transform=lr_transform)
+val_dataset = ImageDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir, hr_transform=hr_transform, lr_transform=lr_transform)
 
-
-train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=4, collate_fn=collate_fn)
-val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=collate_fn)
+batch_size = 5
+lambda_perceptual=0.9
+num_epochs=10
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
 model = Generator()
 model = model.to(device)
 loss = PerceptualLoss().to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
+discriminator = Discriminator().to(device)
+d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=0.0001)
+criterion_GAN = torch.nn.BCEWithLogitsLoss().to(device)
+
+
+print('test')
 
 # Training loop
-for lr_imgs, hr_imgs in train_loader:
-    #losses = []
-    print('test')
-    for lr_img, hr_img in zip(lr_imgs, hr_imgs):
-        optimizer.zero_grad()
-        lr_img = lr_img.unsqueeze(0).to(device)
-        hr_img = hr_img.unsqueeze(0).to(device)
-        out = model(lr_img)
-        out = torch.clamp(out, 0, 1)
-        print('ran model')
-        img_loss = loss(out, hr_img)
-        #losses.append(img_loss)
-        img_loss.backward()
-        optimizer.step()
-        
-    #batch_loss = torch.stack(losses).mean()
-    #batch_loss.backward()
-    #optimizer.step()
-    torch.cuda.empty_cache()
-    #print(len(losses))
-    print(f'Epoch test, loss: {img_loss.item()}')
-    
+for epoch in range(num_epochs):
+    batch_idx=0
+    for lr_imgs, hr_imgs in train_loader:
+        ### Discriminator Training
+        real_labels = torch.ones(batch_size, 1).to(device)
+        fake_labels = torch.zeros(batch_size, 1).to(device)
 
+        discriminator.zero_grad()
+
+        # Train with real images
+        real_preds = discriminator(hr_imgs.to(device))
+        d_loss_real = criterion_GAN(real_preds, real_labels)
+
+        # Train with fake images
+        fake_images = model(lr_imgs.to(device))
+        fake_preds = discriminator(fake_images.detach())
+        d_loss_fake = criterion_GAN(fake_preds, fake_labels)
+
+        # Total discriminator loss
+        d_loss = (d_loss_real + d_loss_fake) / 2
+        d_loss.backward()
+        d_optimizer.step()
+
+        ### Generator Training
+        print('Generator training')
+        model.zero_grad()
+
+        # Adversarial loss for generator
+        fake_preds_for_generator = discriminator(fake_images)
+        g_loss_gan = criterion_GAN(fake_preds_for_generator, real_labels)
+
+        # Perceptual loss
+        perceptual_loss = loss(fake_images, hr_imgs.to(device))
+
+        # Combined loss
+        g_loss = g_loss_gan + perceptual_loss * lambda_perceptual  
+
+        g_loss.backward()
+        optimizer.step()
+        print(f'Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], '
+              f'D Loss: {d_loss.item():.4f}, G Loss: {g_loss.item():.4f}, '
+              f'G_GAN Loss: {g_loss_gan.item():.4f}, Perceptual Loss: {perceptual_loss.item():.4f}')
+        batch_idx+=1
     
-new_lr_img = lr_img.unsqueeze(0).to(device)
