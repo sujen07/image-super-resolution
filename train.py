@@ -8,6 +8,8 @@ from models import Generator
 from models import ImageDataset
 from models import PerceptualLoss
 from models import Discriminator
+import matplotlib.pyplot as plt
+from PIL import Image
 
 device = torch.device("cuda")
 
@@ -20,8 +22,8 @@ val_hr_dir = os.path.join(val_dir, 'hr')
 val_lr_dir = os.path.join(val_dir, 'lr')
 
 
-downscaling_factor = 2  # Adjust as per your downscaling factor
-hr_crop_size = 100  # Example crop size for HR images
+downscaling_factor = 4  # Adjust as per your downscaling factor
+hr_crop_size = 500  # Example crop size for HR images
 
 # Transforms for HR images
 hr_transform = transforms.Compose([
@@ -43,7 +45,7 @@ train_dataset = ImageDataset(hr_dir=train_hr_dir, lr_dir=train_lr_dir, hr_transf
 val_dataset = ImageDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir, hr_transform=hr_transform, lr_transform=lr_transform)
 
 batch_size = 5
-lambda_perceptual=0.9
+lambda_perceptual=0.5
 num_epochs=10
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
@@ -58,7 +60,23 @@ d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=0.0001)
 criterion_GAN = torch.nn.BCEWithLogitsLoss().to(device)
 
 
-print('test')
+def save_imgs(lr_input, target_hr):
+    lr_img = lr_input.permute(1, 2, 0).numpy()
+    plt.imshow(lr_img)
+    plt.savefig('image_lr.png', bbox_inches='tight', pad_inches=0)
+    
+    hr_img = target_hr.permute(1, 2, 0).numpy()
+    plt.imshow(hr_img)
+    plt.savefig('image_hr.png', bbox_inches='tight', pad_inches=0)
+    
+    lr_input = lr_input.unsqueeze(0).to(device)
+    target = target_hr.unsqueeze(0).to(device)
+    with torch.no_grad():
+        out = model(lr_input)
+        print(loss(out, target).item())
+    out = out.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    plt.imshow(out)
+    plt.savefig('image_model.png', bbox_inches='tight', pad_inches=0)
 
 # Training loop
 for epoch in range(num_epochs):
@@ -104,4 +122,11 @@ for epoch in range(num_epochs):
               f'D Loss: {d_loss.item():.4f}, G Loss: {g_loss.item():.4f}, '
               f'G_GAN Loss: {g_loss_gan.item():.4f}, Perceptual Loss: {perceptual_loss.item():.4f}')
         batch_idx+=1
+    
+
+torch.save(model.state_dict(), 'model.pth')
+print('Successfuly saved model to model.pth')    
+
+    
+    
     

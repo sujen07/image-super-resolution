@@ -10,7 +10,7 @@ out_dir = "data"  # Output directory for preprocessed images
 scale_factor = 4  # Scale factor for resizing, adjust based on your requirements
 
 # Load dataset
-dataset = load_dataset('eugenesiow/Div2k', num_proc=num_proc)
+dataset = load_dataset('eugenesiow/Div2k', 'bicubic_x4',  num_proc=num_proc)
 
 # Preprocess and save function
 def preprocess_and_save(data, subset):

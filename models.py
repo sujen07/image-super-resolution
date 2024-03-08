@@ -10,46 +10,57 @@ from PIL import Image
 
 
 
-class ResidualBlock(nn.Module):
-    def __init__(self, in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1):
-        super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.conv2 = nn.Conv2d(out_channels, in_channels, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.relu = nn.LeakyReLU(0.2)
-
+class RRDBlock(nn.Module):
+    def __init__(self, in_channels=64, growth_channel=32, num_conv=5):
+        super(RRDBlock, self).__init__()
+        self.layers = nn.ModuleList()
+        for i in range(num_conv):
+            conv_layer = nn.Sequential(
+                nn.Conv2d(in_channels + i * growth_channel, growth_channel, kernel_size=3, stride=1, padding=1),
+                nn.LeakyReLU(0.2, inplace=True)
+            )
+            self.layers.append(conv_layer)
+        
+        self.conv_last = nn.Conv2d(in_channels + num_conv * growth_channel, in_channels, kernel_size=3, stride=1, padding=1)
+    
     def forward(self, x):
-        residual = x
-        out = self.relu(self.conv1(x))
-        out = self.conv2(out)
-        out += residual
-        return out
+        residuals = x
+        for layer in self.layers:
+            out = layer(x)
+            x = torch.cat([x, out], 1) 
+        out = self.conv_last(x)
+        return out + residuals
+
         
         
 class Generator(nn.Module):
-    def __init__(self, in_channels=3, num_rrdb_blocks=23):
+    def __init__(self, in_channels=3, num_rrdb_blocks=35):
         super(Generator, self).__init__()
+        self.first_conv = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1)
         self.rrdb_blocks = self._make_layers(num_rrdb_blocks)
         self.upsample = nn.Sequential(
-            nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),  # Upsample by 2x
-            nn.LeakyReLU(0.2),
             nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
-            nn.LeakyReLU(0.2)
+            nn.PixelShuffle(2),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(2),
+            nn.LeakyReLU(0.2, inplace=True)
         )
-        self.conv = nn.Conv2d(256, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv_last = nn.Conv2d(64, in_channels, kernel_size=3, stride=1, padding=1)
 
-        
     def _make_layers(self, num_rrdb_blocks):
         layers = []
         for _ in range(num_rrdb_blocks):
-            layers.append(ResidualBlock())
+            layers.append(RRDBlock())
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        x = self.first_conv(x)
         out = self.rrdb_blocks(x)
         out = self.upsample(out)
-        out = self.conv(out)
+        out = self.conv_last(out)
         return out
+
     
     
     
