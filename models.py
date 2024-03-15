@@ -40,13 +40,13 @@ class Generator(nn.Module):
         self.rrdb_blocks = self._make_layers(num_rrdb_blocks)
         self.upsample = nn.Sequential(
             nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),
+            nn.PixelShuffle(4),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),
+            nn.Conv2d(16, 256, kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(1),
             nn.LeakyReLU(0.2, inplace=True)
         )
-        self.conv_last = nn.Conv2d(64, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv_last = nn.Conv2d(256, in_channels, kernel_size=3, stride=1, padding=1)
 
     def _make_layers(self, num_rrdb_blocks):
         layers = []
@@ -72,9 +72,11 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
+            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
             # Add more layers as needed
         )
-        # Placeholder for the fully connected layers; to be initialized later
+
         self.fc = None
 
     def forward(self, x):
