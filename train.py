@@ -47,8 +47,8 @@ train_dataset = ImageDataset(hr_dir=train_hr_dir, lr_dir=train_lr_dir, hr_transf
 val_dataset = ImageDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir, hr_transform=hr_transform, lr_transform=lr_transform)
 
 batch_size = 5
-lambda_perceptual=0.7
-num_epochs=400
+lambda_perceptual=0.3
+num_epochs=1000
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
