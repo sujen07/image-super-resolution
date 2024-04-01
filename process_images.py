@@ -6,7 +6,7 @@ from prepare_data import preprocess_and_save
 
 
 train_data = []
-img_folder = 'img_folder'
+img_folder = 'img_folder/flowers'
 
 all_imgs = glob.glob(os.path.join(img_folder, '*.png'))
 
@@ -20,7 +20,7 @@ for image_path in all_imgs:
     img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
     # Path to save the downscaled image
-    downscaled_image_path = os.path.join(img_folder, os.path.basename(image_path))
+    downscaled_image_path = os.path.join(img_folder, 'lr_' + os.path.basename(image_path))
 
     # Save the downscaled image
     img_resized.save(downscaled_image_path)

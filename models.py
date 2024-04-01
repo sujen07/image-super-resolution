@@ -34,19 +34,19 @@ class RRDBlock(nn.Module):
         
         
 class Generator(nn.Module):
-    def __init__(self, in_channels=3, num_rrdb_blocks=35):
+    def __init__(self, in_channels=3, num_rrdb_blocks=23):
         super(Generator, self).__init__()
         self.first_conv = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1)
         self.rrdb_blocks = self._make_layers(num_rrdb_blocks)
         self.upsample = nn.Sequential(
             nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(4),
+            nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(16, 256, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(1),
+            nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True)
         )
-        self.conv_last = nn.Conv2d(256, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv_last = nn.Conv2d(64, in_channels, kernel_size=3, stride=1, padding=1)
 
     def _make_layers(self, num_rrdb_blocks):
         layers = []

@@ -30,7 +30,7 @@ def preprocess_and_save(data, subset, start_ind=0):
 # Process and save training and validation datasets
 # Load dataset
 if __name__ == '__main__':
-    dataset = load_dataset('eugenesiow/Div2k', 'bicubic_x4',  num_proc=num_proc)        
+    dataset = load_dataset('eugenesiow/Div2k',  num_proc=num_proc)        
 
     preprocess_and_save(dataset['train'], 'train')
     preprocess_and_save(dataset['validation'], 'validation')
