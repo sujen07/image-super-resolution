@@ -1,7 +1,8 @@
-# Please install super-image dataset: pip install datasets super-image
+# Please install: pip install datasets
 import os
 from datasets import load_dataset
 from PIL import Image
+from tqdm import tqdm
 import numpy as np
 
 # Configuration
@@ -16,7 +17,7 @@ def preprocess_and_save(data, subset, start_ind=0):
     os.makedirs(f"{out_dir}/{subset}/lr", exist_ok=True)  # Low-res images directory
     os.makedirs(f"{out_dir}/{subset}/hr", exist_ok=True)  # High-res images directory
     
-    for i, item in enumerate(data):
+    for i, item in tqdm(enumerate(data), total=len(data)):
         # Load images
         lr_img_path, hr_img_path = item['lr'], item['hr']
         lr_img = Image.open(lr_img_path)
@@ -30,7 +31,7 @@ def preprocess_and_save(data, subset, start_ind=0):
 # Process and save training and validation datasets
 # Load dataset
 if __name__ == '__main__':
-    dataset = load_dataset('eugenesiow/Div2k',  num_proc=num_proc)        
+    dataset = load_dataset('div2k.py', 'bicubic_x4')        
 
     preprocess_and_save(dataset['train'], 'train')
     preprocess_and_save(dataset['validation'], 'validation')

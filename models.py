@@ -17,7 +17,8 @@ class RRDBlock(nn.Module):
         for i in range(num_conv):
             conv_layer = nn.Sequential(
                 nn.Conv2d(in_channels + i * growth_channel, growth_channel, kernel_size=3, stride=1, padding=1),
-                nn.LeakyReLU(0.2, inplace=True)
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Dropout(0.3)
             )
             self.layers.append(conv_layer)
         
@@ -39,14 +40,14 @@ class Generator(nn.Module):
         self.first_conv = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1)
         self.rrdb_blocks = self._make_layers(num_rrdb_blocks)
         self.upsample = nn.Sequential(
-            nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
             nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(32, 128, kernel_size=3, stride=1, padding=1),
             nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True)
         )
-        self.conv_last = nn.Conv2d(64, in_channels, kernel_size=3, stride=1, padding=1)
+        self.conv_last = nn.Conv2d(32, in_channels, kernel_size=3, stride=1, padding=1)
 
     def _make_layers(self, num_rrdb_blocks):
         layers = []
@@ -70,10 +71,13 @@ class Discriminator(nn.Module):
         self.convs = nn.Sequential(
             nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
             nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
             # Add more layers as needed
         )
 

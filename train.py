@@ -69,6 +69,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
     train_loader, val_loader = load_data(downscaling_factor, batch_size, hr_crop_size, train_dir, val_dir)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device('cpu')
+    print(f'Using Device: {device}')
     model = Generator()
     model = model.to(device)
     loss = PerceptualLoss().to(device)
@@ -86,6 +87,8 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
     for epoch in range(num_epochs):
         batch_idx=0
         epoch_loss = 0
+        d_loss_epoch = 0
+        g_loss_epoch = 0
         start_time = time.time()
         for lr_imgs, hr_imgs in train_loader:
             ### Discriminator Training
@@ -106,6 +109,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
 
             # Total discriminator loss
             d_loss = (d_loss_real + d_loss_fake) / 2
+            d_loss_epoch += d_loss.item()
             d_loss.backward()
             d_optimizer.step()
 
@@ -114,6 +118,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
             # Adversarial loss for generator
             fake_preds_for_generator = discriminator(fake_images)
             g_loss_gan = criterion_GAN(fake_preds_for_generator - torch.mean(real_preds.detach()), real_labels)
+            g_loss_epoch += g_loss_gan.item()
 
             # Perceptual loss
             perceptual_loss = loss(fake_images, hr_imgs.to(device))
@@ -134,6 +139,10 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
         end_time = time.time()
         one_epoch_time = end_time - start_time
         train_loss = epoch_loss / len(train_loader)
+        d_loss_epoch = d_loss_epoch / len(train_loader)
+        g_loss_epoch = g_loss_epoch / len(train_loader)
+        if wandb_log:
+            wandb.log({'d_loss': d_loss_epoch, 'g_loss': g_loss_epoch})
         print(f'Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
         if epoch % 20 == 0:
             val_loss = get_val_loss(model, val_loader, loss, device)
