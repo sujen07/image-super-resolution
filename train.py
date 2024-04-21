@@ -16,9 +16,9 @@ import wandb
 
 # Default Hyperparameters
 default_downscaling_factor = 4
-default_hr_crop_size = 256
-default_batch_size = 5
-default_lambda_perceptual = 0.7
+default_hr_crop_size = 356
+default_batch_size = 10
+default_lambda_perceptual = 0.3
 default_learning_rate = 0.0001
 default_num_epochs = 1000
 default_model_name = 'model.pth'
@@ -45,6 +45,7 @@ def parse_args():
 
 def get_val_loss(model, val_loader, loss, device):
     total_loss = 0
+    model.eval()
     with torch.no_grad():
         for val_lr, val_hr in val_loader:
             output = model(val_lr.to(device))
@@ -79,8 +80,8 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
     d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=learning_rate)
     criterion_GAN = torch.nn.BCEWithLogitsLoss().to(device)
 
-    g_scheduler = StepLR(optimizer, step_size=50, gamma=0.5) 
-    d_scheduler = StepLR(d_optimizer, step_size=50, gamma=0.5) 
+    g_scheduler = StepLR(optimizer, step_size=100, gamma=0.5) 
+    d_scheduler = StepLR(d_optimizer, step_size=100, gamma=0.5) 
 
 
     # Training loop
@@ -91,6 +92,8 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
         g_loss_epoch = 0
         start_time = time.time()
         for lr_imgs, hr_imgs in train_loader:
+            model.zero_grad()
+            model.train()
             ### Discriminator Training
             real_labels = torch.ones(batch_size, 1).to(device)
             fake_labels = torch.zeros(batch_size, 1).to(device)
@@ -112,8 +115,6 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
             d_loss_epoch += d_loss.item()
             d_loss.backward()
             d_optimizer.step()
-
-            model.zero_grad()
 
             # Adversarial loss for generator
             fake_preds_for_generator = discriminator(fake_images)

@@ -18,7 +18,7 @@ class RRDBlock(nn.Module):
             conv_layer = nn.Sequential(
                 nn.Conv2d(in_channels + i * growth_channel, growth_channel, kernel_size=3, stride=1, padding=1),
                 nn.LeakyReLU(0.2, inplace=True),
-                nn.Dropout(0.3)
+                nn.Dropout(0.1)
             )
             self.layers.append(conv_layer)
         
@@ -71,13 +71,13 @@ class Discriminator(nn.Module):
         self.convs = nn.Sequential(
             nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1),
             nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             # Add more layers as needed
         )
 
