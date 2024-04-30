@@ -1,0 +1,12 @@
+torch
+torchvision
+numpy
+matplotlib
+Pillow
+Flask
+onnx
+onnxruntime
+wandb
+datasets
+tqdm
+argparse

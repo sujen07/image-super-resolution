@@ -1,4 +1,3 @@
-# Please install: pip install datasets
 import os
 from datasets import load_dataset
 from PIL import Image
