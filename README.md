@@ -47,9 +47,24 @@ The model is based on the ESRGAN architecture, which is a robust approach to enh
 - **Residual-in-Residual Dense Blocks (RRDB):** These blocks help in reconstructing more details from low-resolution images.
 - **GAN-based Architecture:** Utilizes a discriminator network to guide the super-resolution process, resulting in more realistic images.
 
+### Model Architecture
+
+!(ESRGAN Generator and Discriminator Archiecture)(esrgan_architecture.png)
+
 ## Dataset
 
 This model has been trained on the DIV2K dataset, which is a benchmark for image super-resolution techniques. It contains 800 high-quality images, which are diverse in scenes and subjects, providing a robust training set for high-resolution image enhancement.
+
+## Training Results
+
+Here are the hyperparameters I used in training the model:
+
+- *Residual-in-Residual Dense Blocks:* 23
+- *Batch Size: 10*
+- *Crop Size: 356*
+- *Lambda Weight: 0.3*
+- *Learning Rate: 0.0001
+- *Epochs: 240*
 
 ## License
 
