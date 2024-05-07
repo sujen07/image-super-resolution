@@ -66,6 +66,24 @@ Here are the hyperparameters I used in training the model:
 - *Learning Rate: 0.0001
 - *Epochs: 240*
 
+The Dataset was split into validation and training, and after every 20 epochs the validation and training loss over the epoch were logged. The graphs below show the discriminator and GAN losses over the training. The validation loss and training loss show the perceptual loss at each validation step over the training and vlidation data.
+
+The Generator loss is maximizing the probability that the Discriminator predicts an image generated as fake. The Discriminator is conversely trying to learn the real images different from the fake images using the target high resolution image versus the generated image as the fake one.
+Here are the graphs over the training period for the Discriminator and the Generator Losses:
+
+<p>
+  <img src="g_loss.png" alt="Generator Loss" style="width: 45%; margin-right: 2%;">
+  <img src="d_loss.png" alt="Discriminator Loss" style="width: 45%;">
+</p>
+
+The Perceptual Loss is the difference in pixels between the target high res image and the generated image. The Perceptual loss is combined with the Generator Loss to train the Generator model.
+### Perceptual loss Graphs:
+<p>
+  <img src="train_loss.png" alt="Training Loss" style="width: 45%; margin-right: 2%;">
+  <img src="val_loss.png" alt="Validation Loss" style="width: 45%;">
+</p>
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
