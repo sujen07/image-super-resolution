@@ -49,7 +49,7 @@ The model is based on the ESRGAN architecture, which is a robust approach to enh
 
 ### Model Architecture
 
-!(ESRGAN Generator and Discriminator Archiecture)(esrgan_architecture.png)
+![ESRGAN Generator and Discriminator Archiecture](esrgan_architecture.png)
 
 ## Dataset
 
