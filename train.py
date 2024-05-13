@@ -24,6 +24,7 @@ default_num_epochs = 1000
 default_model_name = 'model.pth'
 default_out_dir = 'out'
 default_wandb_log = False
+defualt_init_resume = False
 
 
 
@@ -40,6 +41,7 @@ def parse_args():
     parser.add_argument("--out_dir", type=str, default=default_out_dir)
     parser.add_argument("--wandb_log", type=bool, default=default_wandb_log)
     parser.add_argument("--lr", type=bool, default=default_learning_rate)
+    parser.add_argument("--resume", type=bool, default=defualt_init_resume)
     return parser.parse_args()
 
 
@@ -56,7 +58,7 @@ def get_val_loss(model, val_loader, loss, device):
 
 
 
-def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learning_rate, num_epochs, model_path, wandb_log):
+def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learning_rate, num_epochs, model_path, wandb_log, resume):
     print(f"Training configuration:\n"
           f"Model Path: {model_path}\n"
           f"Epochs: {num_epochs}\n"
@@ -71,7 +73,11 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device('cpu')
     print(f'Using Device: {device}')
+
     model = Generator()
+    if resume:
+        model.load_state_dict(torch.load(model_path))
+        
     model = model.to(device)
     loss = PerceptualLoss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -94,6 +100,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
         for lr_imgs, hr_imgs in train_loader:
             model.zero_grad()
             model.train()
+            batch_size = lr_imgs.size(0)
             ### Discriminator Training
             real_labels = torch.ones(batch_size, 1).to(device)
             fake_labels = torch.zeros(batch_size, 1).to(device)
@@ -173,4 +180,4 @@ if __name__ == '__main__':
             # Track hyperparameters and run metadata
             config=config
         )
-    train(args.downscaling_factor, args.hr_crop_size, args.batch_size, args.lambda_perceptual, args.lr, args.num_epochs, model_path, args.wandb_log)
+    train(args.downscaling_factor, args.hr_crop_size, args.batch_size, args.lambda_perceptual, args.lr, args.num_epochs, model_path, args.wandb_log, args.resume)
