@@ -7,3 +7,4 @@ __pycache__
 wandb
 out
 *.json
+img_folder
