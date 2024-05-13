@@ -11,6 +11,10 @@ app = Flask(__name__)
 
 def load_model(model_path):
     session = ort.InferenceSession(model_path)
+    input_info = session.get_inputs()[0]
+    print("Input name:", input_info.name)
+    print("Input shape:", input_info.shape)
+    print("Input type:", input_info.type)
     return session
 
 def prepare_image(img):
@@ -45,9 +49,10 @@ def predict():
         output_image = image_to_bytes(output_tensor)
         return send_file(output_image, mimetype='image/png')
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    model_path = 'model.onnx'
+    model_path = 'out/model.onnx'
     model_session = load_model(model_path)
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=5001, debug=True)
