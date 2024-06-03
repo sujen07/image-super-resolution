@@ -9,7 +9,7 @@ def is_image_file(filename):
     return filename.lower().endswith(('.png', '.jpg', '.jpeg'))
 
 train_data = []
-img_folder = 'Humans'
+img_folder = 'img_folder'
 
 all_imgs = [file for file in os.listdir(img_folder) if is_image_file(file)]
 
@@ -31,4 +31,4 @@ for image_path in tqdm(all_imgs):
 
     train_data.append({'lr': downscaled_image_path, 'hr': img_path})
 
-preprocess_and_save(train_data, 'train', start_ind=801)
+preprocess_and_save(train_data, 'train', start_ind=0)
