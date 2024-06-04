@@ -68,7 +68,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
           f"Lambda Perceptual: {lambda_perceptual}\n")
 
     train_dir = 'data/train'
-    val_dir = 'data/validation'
+    val_dir = 'data/train'
     train_loader, val_loader = load_data(downscaling_factor, batch_size, hr_crop_size, train_dir, val_dir)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device('cpu')
@@ -153,10 +153,10 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
             wandb.log({'d_loss': d_loss_epoch, 'g_loss': g_loss_epoch})
         print(f'Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
         if epoch % 20 == 0:
-            val_loss = get_val_loss(model, val_loader, loss, device)
+            #val_loss = get_val_loss(model, val_loader, loss, device)
             if wandb_log:
-                wandb.log({"Validation Perceptual Loss": val_loss, "Training Perceptual Loss": train_loss})
-            print(f'Perceptual Loss Train: {train_loss}, Val: {val_loss}, Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
+                wandb.log({"Validation Perceptual Loss": train_loss, "Training Perceptual Loss": train_loss})
+            print(f'Perceptual Loss Train: {train_loss}, Val: {train_loss}, Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
             torch.save(model.state_dict(), model_path)
             print(f'Successfully Saved Checkpoint at {model_path}')
             
