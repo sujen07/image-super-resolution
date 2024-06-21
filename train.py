@@ -15,16 +15,18 @@ import wandb
 
 
 # Default Hyperparameters
-default_downscaling_factor = 4
-default_hr_crop_size = 356
-default_batch_size = 10
-default_lambda_perceptual = 0.3
+default_downscaling_factor = 2
+default_hr_crop_size = 256
+default_batch_size = 8
+default_lambda_perceptual = 0.8
 default_learning_rate = 0.0001
 default_num_epochs = 1000
 default_model_name = 'model.pth'
 default_out_dir = 'out'
 default_wandb_log = False
 defualt_init_resume = False
+l1_lambda = 0.5
+lambda_perceptual = 0.3
 
 
 
@@ -51,7 +53,7 @@ def get_val_loss(model, val_loader, loss, device):
     with torch.no_grad():
         for val_lr, val_hr in val_loader:
             output = model(val_lr.to(device))
-            total_loss += loss(output, val_hr.to(device)).item()
+            total_loss += loss(output, val_hr.to(device))[0].item()
     total_loss = total_loss / len(val_loader)
     return total_loss
 
@@ -68,7 +70,7 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
           f"Lambda Perceptual: {lambda_perceptual}\n")
 
     train_dir = 'data/train'
-    val_dir = 'data/train'
+    val_dir = 'data/validation'
     train_loader, val_loader = load_data(downscaling_factor, batch_size, hr_crop_size, train_dir, val_dir)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device('cpu')
@@ -129,10 +131,10 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
             g_loss_epoch += g_loss_gan.item()
 
             # Perceptual loss
-            perceptual_loss = loss(fake_images, hr_imgs.to(device))
+            perceptual_loss, l1_loss = loss(fake_images, hr_imgs.to(device))
 
             # Combined loss
-            g_loss = g_loss_gan + perceptual_loss * lambda_perceptual  
+            g_loss = g_loss_gan * lambda_perceptual + lambda_perceptual * perceptual_loss + l1_loss * l1_lambda
             epoch_loss += perceptual_loss.item()
 
             g_loss.backward()
@@ -152,11 +154,11 @@ def train(downscaling_factor, hr_crop_size, batch_size, lambda_perceptual, learn
         if wandb_log:
             wandb.log({'d_loss': d_loss_epoch, 'g_loss': g_loss_epoch})
         print(f'Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
-        if epoch % 20 == 0:
-            #val_loss = get_val_loss(model, val_loader, loss, device)
+        if epoch % 5 == 0:
+            val_loss = get_val_loss(model, val_loader, loss, device)
             if wandb_log:
-                wandb.log({"Validation Perceptual Loss": train_loss, "Training Perceptual Loss": train_loss})
-            print(f'Perceptual Loss Train: {train_loss}, Val: {train_loss}, Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
+                wandb.log({"Validation Perceptual Loss": val_loss, "Training Perceptual Loss": train_loss})
+            print(f'Perceptual Loss Train: {train_loss}, Val: {val_loss}, Time for Epoch {epoch+1}: {one_epoch_time} Seconds')
             torch.save(model.state_dict(), model_path)
             print(f'Successfully Saved Checkpoint at {model_path}')
             

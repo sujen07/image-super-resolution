@@ -44,9 +44,9 @@ class Generator(nn.Module):
             nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
             nn.PixelShuffle(2),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(32, 128, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),
-            nn.LeakyReLU(0.2, inplace=True)
+#            nn.Conv2d(32, 128, kernel_size=3, stride=1, padding=1),
+#            nn.PixelShuffle(2),
+#            nn.LeakyReLU(0.2, inplace=True)
         )
         self.conv_last = nn.Conv2d(32, in_channels, kernel_size=3, stride=1, padding=1)
 
@@ -121,14 +121,15 @@ class VGGFeatures(torch.nn.Module):
 
     def forward(self, X):
         h = self.slice1(X)
-        h_relu1_2 = h
+        h_relu1_2 = h.clone()
         h = self.slice2(h)
-        h_relu2_2 = h
+        h_relu2_2 = h.clone()
         h = self.slice3(h)
-        h_relu3_3 = h
+        h_relu3_3 = h.clone()
         h = self.slice4(h)
-        h_relu4_3 = h
+        h_relu4_3 = h.clone()
         return [h_relu1_2, h_relu2_2, h_relu3_3, h_relu4_3]
+
 
     
     
@@ -136,13 +137,15 @@ class PerceptualLoss(torch.nn.Module):
     def __init__(self):
         super(PerceptualLoss, self).__init__()
         self.vgg = VGGFeatures()
-        self.criterion = torch.nn.MSELoss()
+        self.criterion_perceptual = torch.nn.MSELoss()
+        self.criterion_L1 = torch.nn.L1Loss()
 
     def forward(self, x, y):
-        
         x_vgg, y_vgg = self.vgg(x), self.vgg(y)
-        loss = sum(self.criterion(x_feat, y_feat) for x_feat, y_feat in zip(x_vgg, y_vgg))
-        return loss
+        perceptual_loss = sum(self.criterion_perceptual(x_feat, y_feat) for x_feat, y_feat in zip(x_vgg, y_vgg))
+        l1_loss = self.criterion_L1(x, y)
+        return perceptual_loss, l1_loss
+
 
 
 class ImageDataset(Dataset):
