@@ -49,7 +49,7 @@ The model is based on the ESRGAN architecture, which is a robust approach to enh
 
 ### Model Architecture
 
-![ESRGAN Generator and Discriminator Archiecture](esrgan_architecture.png)
+![ESRGAN Generator and Discriminator Archiecture](readme_imgs/esrgan_architecture.png)
 
 ## Dataset
 
@@ -72,15 +72,15 @@ The Generator loss is maximizing the probability that the Discriminator predicts
 Here are the graphs over the training period for the Discriminator and the Generator Losses:
 
 <p>
-  <img src="g_loss.png" alt="Generator Loss" style="width: 45%; margin-right: 2%;">
-  <img src="d_loss.png" alt="Discriminator Loss" style="width: 45%;">
+  <img src="readme_imgs/g_loss.png" alt="Generator Loss" style="width: 45%; margin-right: 2%;">
+  <img src="readme_imgs/d_loss.png" alt="Discriminator Loss" style="width: 45%;">
 </p>
 
 The Perceptual Loss is the difference in pixels between the target high res image and the generated image. The Perceptual loss is combined with the Generator Loss to train the Generator model.
 ### Perceptual loss Graphs:
 <p>
-  <img src="train_loss.png" alt="Training Loss" style="width: 45%; margin-right: 2%;">
-  <img src="val_loss.png" alt="Validation Loss" style="width: 45%;">
+  <img src="readme_imgs/train_loss.png" alt="Training Loss" style="width: 45%; margin-right: 2%;">
+  <img src="readme_imgs/val_loss.png" alt="Validation Loss" style="width: 45%;">
 </p>
 
 
