@@ -84,6 +84,14 @@ The Perceptual Loss is the difference in pixels between the target high res imag
 </p>
 
 
+## Performance Sample
+<details>
+<summary>Click to see the interactive comparison</summary>
+
+<iframe src="sample.html" width="100%" height="450" frameborder="0"></iframe>
+
+</details>
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
