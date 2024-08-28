@@ -1,5 +1,4 @@
 data/*
-*.png
 *.pth
 *.log
 __pycache__

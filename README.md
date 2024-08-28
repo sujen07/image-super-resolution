@@ -89,10 +89,17 @@ The Perceptual Loss is the difference in pixels between the target high res imag
   <tr>
     <td>Low Res</td>
      <td>High Res (ESRGAN)</td>
+     <td>Size</td>
   </tr>
   <tr>
     <td><img src="readme_imgs/lr_image.png" width="300"/></td>
     <td><img src="readme_imgs/out_image.png" width="300"/></td>
+    <td>256 x 256</td>
+  </tr>
+  <tr>
+    <td><img src="readme_imgs/lr_image2.png" width="300"/></td>
+    <td><img src="readme_imgs/out_image2.png" width="300"/></td>
+    <td>512 x 512</td>
   </tr>
 </table>
 
