@@ -1,11 +1,11 @@
 import os
 import torch
 from torch.nn.functional import pad
-from models import Generator
+from src.training.models import Generator
 from torch.optim.lr_scheduler import StepLR
-from models import PerceptualLoss
-from models import Discriminator
-from load_data import load_data
+from src.training.models import PerceptualLoss
+from src.training.models import Discriminator
+from src.load_data import load_data
 import matplotlib.pyplot as plt
 from PIL import Image
 import time

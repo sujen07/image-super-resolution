@@ -1,6 +1,6 @@
 import torch.onnx
 import torch
-from models import Generator
+from src.training.models import Generator
 from PIL import Image
 from torchvision import transforms
 from onnxruntime.quantization import quantize_dynamic, QuantType

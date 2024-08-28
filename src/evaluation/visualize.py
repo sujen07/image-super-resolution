@@ -3,7 +3,7 @@ import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
 import matplotlib.pyplot as plt
-from models import *
+from src.training.models import *
 import pdb
 from PIL import Image
 

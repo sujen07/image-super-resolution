@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from models import ImageDataset
+from src.training.models import ImageDataset
 import os
 
 def load_data(downscaling_factor, batch_size, hr_crop_size, train_dir, val_dir):

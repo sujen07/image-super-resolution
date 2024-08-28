@@ -3,7 +3,7 @@ import glob
 from PIL import Image
 from tqdm import tqdm
 
-from prepare_data import preprocess_and_save
+from src.prepare_data import preprocess_and_save
 
 def is_image_file(filename):
     return filename.lower().endswith(('.png', '.jpg', '.jpeg'))
