@@ -1,7 +1,0 @@
-usage: train.py [-h] [--downscaling_factor DOWNSCALING_FACTOR]
-                [--hr_crop_size HR_CROP_SIZE] [--batch_size BATCH_SIZE]
-                [--lambda_perceptual LAMBDA_PERCEPTUAL]
-                [--num_epochs NUM_EPOCHS] [--model_name MODEL_NAME]
-                [--out_dir OUT_DIR] [--wandb_log WANDB_LOG] [--lr LR]
-                [--resume RESUME]
-train.py: error: argument --downscaling_factor: expected one argument
